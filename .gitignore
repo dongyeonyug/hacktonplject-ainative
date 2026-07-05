@@ -47,3 +47,6 @@ yarn-error.log*
 /playwright-report
 /test-results
 /.vitest-cache
+
+# local Claude Code settings
+.claude/settings.local.json
