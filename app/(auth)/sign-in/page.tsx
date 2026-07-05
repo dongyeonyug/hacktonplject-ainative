@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { signInAction, signInWithOAuthAction } from "../actions";
+import { signInAction } from "../actions";
 
 export default async function SignInPage({
   searchParams,
@@ -55,22 +55,6 @@ export default async function SignInPage({
           className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 font-semibold text-white transition hover:bg-indigo-500"
         >
           로그인
-        </button>
-      </form>
-
-      <div className="flex items-center gap-3 text-xs text-neutral-400">
-        <div className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
-        또는
-        <div className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
-      </div>
-
-      <form action={signInWithOAuthAction}>
-        <input type="hidden" name="provider" value="google" />
-        <button
-          type="submit"
-          className="w-full rounded-lg border border-neutral-300 px-4 py-2.5 font-semibold transition hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-900"
-        >
-          Google로 계속하기
         </button>
       </form>
 
