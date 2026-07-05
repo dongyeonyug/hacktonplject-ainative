@@ -12,6 +12,7 @@ import {
   type QualityInputRecord,
   type ExtractionState,
 } from "@/lib/metrics/quality";
+import { CategoryPanel } from "./CategoryPanel";
 
 // Aggregate numbers change as soon as new messages are extracted — never cache.
 export const dynamic = "force-dynamic";
@@ -45,6 +46,36 @@ const STATE_LABELS: Record<ExtractionState, string> = {
   running: "처리 중",
   done: "완료",
   failed: "실패",
+};
+
+/**
+ * 발표(데모)용 정적 샘플 데이터 — 실제 추출 파이프라인/DB와 연결되어 있지
+ * 않습니다. 대화에서 파악한 "사용자 니즈" 분포를 시각적으로 보여주기 위한
+ * 프론트엔드 전용 mock입니다. count 내림차순으로 미리 정렬해 둡니다.
+ */
+const NEEDS_CATEGORIES = [
+  { label: "채용·일자리 정보", count: 342, tone: "indigo" },
+  { label: "면접 준비", count: 287, tone: "sky" },
+  { label: "서류 준비", count: 231, tone: "cyan" },
+  { label: "역량·스펙", count: 198, tone: "teal" },
+  { label: "진로·직무 탐색", count: 176, tone: "emerald" },
+  { label: "경제적 지원", count: 124, tone: "amber" },
+  { label: "경험·인맥", count: 89, tone: "rose" },
+] as const;
+
+const NEEDS_TOTAL = NEEDS_CATEGORIES.reduce((sum, c) => sum + c.count, 0);
+
+// 막대 뷰 색상용 tone 매핑 (감정 카테고리는 실데이터라 여기서 색을 부여).
+const EMOTION_TONES: Record<DifficultyCategory, string> = {
+  career_anxiety: "indigo",
+  financial_stress: "amber",
+  social_isolation: "sky",
+  self_worth: "teal",
+  sleep_health: "cyan",
+  family_pressure: "rose",
+  burnout: "emerald",
+  uncertainty_future: "violet",
+  other: "neutral",
 };
 
 function pct(value: number): string {
@@ -102,6 +133,13 @@ export default async function AdminMetricsPage() {
   const quality = computeQualityMetrics(records);
   const volume = computeVolumeMetrics(records);
   const health = computeExtractionHealth((statusResult.data ?? []).map((row) => row.state));
+
+  // 감정 카테고리: 실데이터 집계를 CategoryPanel용 직렬화 배열로 변환.
+  const emotionItems = DIFFICULTY_CATEGORIES.map((category) => ({
+    label: CATEGORY_LABELS[category],
+    count: volume.perCategoryCounts[category],
+    tone: EMOTION_TONES[category],
+  }));
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-3xl flex-col gap-8 px-6 py-16">
@@ -175,20 +213,15 @@ export default async function AdminMetricsPage() {
         </dl>
       </section>
 
-      <section className="space-y-3 rounded-xl border border-neutral-200 p-5 dark:border-neutral-800">
-        <h2 className="font-semibold">카테고리별 분포</h2>
-        <ul className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-3">
-          {DIFFICULTY_CATEGORIES.map((category) => (
-            <li
-              key={category}
-              className="flex items-center justify-between rounded-lg bg-neutral-50 px-3 py-2 dark:bg-neutral-900"
-            >
-              <span>{CATEGORY_LABELS[category]}</span>
-              <span className="font-semibold">{volume.perCategoryCounts[category]}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <CategoryPanel title="감정 카테고리" items={emotionItems} defaultView="numbers" />
+
+      <CategoryPanel
+        title="니즈 카테고리"
+        items={[...NEEDS_CATEGORIES]}
+        badge="샘플 데이터"
+        defaultView="bars"
+        caption={`대화에서 파악한 사용자 니즈 분포 (총 ${NEEDS_TOTAL.toLocaleString("ko-KR")}건).`}
+      />
 
       <section className="space-y-3 rounded-xl border border-neutral-200 p-5 dark:border-neutral-800">
         <h2 className="font-semibold">추출 파이프라인 상태 (AD-1)</h2>
