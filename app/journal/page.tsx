@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
-import { AppNav } from "@/components/AppNav";
+import { AppShell } from "@/components/AppShell";
 
 export const dynamic = "force-dynamic";
 
@@ -40,61 +40,62 @@ export default async function JournalPage() {
   });
 
   return (
-    <main className="mx-auto min-h-dvh w-full max-w-2xl px-4 py-8">
-      <div className="mb-6 space-y-3">
-        <AppNav current="journal" />
-        <h1 className="text-xl font-semibold">내 기록</h1>
-      </div>
+    <AppShell current="journal">
+      <div className="mx-auto w-full max-w-2xl px-4 py-8">
+        <div className="mb-6 space-y-3">
+          <h1 className="text-xl font-semibold">내 기록</h1>
+        </div>
 
-      <section className="mb-8">
-        <h2 className="mb-3 text-sm font-medium text-neutral-500">루틴</h2>
-        {routines && routines.length > 0 ? (
-          <ul className="flex flex-col gap-2">
-            {routines.map((r) => (
-              <li
-                key={r.id}
-                className="flex items-center justify-between rounded-lg border border-neutral-200 px-4 py-2.5 dark:border-neutral-800"
-              >
-                <span>{r.activity}</span>
-                <span className="text-sm text-neutral-500">
-                  {r.streak_days ?? 0}일 연속
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-sm text-neutral-500">아직 기록된 루틴이 없어요.</p>
-        )}
-      </section>
-
-      <section>
-        <h2 className="mb-3 text-sm font-medium text-neutral-500">대화 기록</h2>
-        {messages && messages.length > 0 ? (
-          <ul className="flex flex-col gap-3">
-            {messages.map((m) => (
-              <li
-                key={m.id}
-                className="rounded-lg border border-neutral-200 px-4 py-3 dark:border-neutral-800"
-              >
-                <div className="mb-1 flex items-center justify-between gap-2 text-xs text-neutral-500">
-                  <span>{m.role === "user" ? "나" : "동반자"}</span>
-                  <span>
-                    {m.created_at ? dateFmt.format(new Date(m.created_at)) : ""}
+        <section className="mb-8">
+          <h2 className="mb-3 text-sm font-medium text-neutral-500">루틴</h2>
+          {routines && routines.length > 0 ? (
+            <ul className="flex flex-col gap-2">
+              {routines.map((r) => (
+                <li
+                  key={r.id}
+                  className="flex items-center justify-between rounded-lg border border-neutral-200 px-4 py-2.5 dark:border-neutral-800"
+                >
+                  <span>{r.activity}</span>
+                  <span className="text-sm text-neutral-500">
+                    {r.streak_days ?? 0}일 연속
                   </span>
-                </div>
-                <p className="whitespace-pre-wrap text-sm">{m.content}</p>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-sm text-neutral-500">
-            아직 대화 기록이 없어요.{" "}
-            <Link href="/chat" className="text-indigo-600 hover:underline">
-              첫 대화를 시작해보세요.
-            </Link>
-          </p>
-        )}
-      </section>
-    </main>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-neutral-500">아직 기록된 루틴이 없어요.</p>
+          )}
+        </section>
+
+        <section>
+          <h2 className="mb-3 text-sm font-medium text-neutral-500">대화 기록</h2>
+          {messages && messages.length > 0 ? (
+            <ul className="flex flex-col gap-3">
+              {messages.map((m) => (
+                <li
+                  key={m.id}
+                  className="rounded-lg border border-neutral-200 px-4 py-3 dark:border-neutral-800"
+                >
+                  <div className="mb-1 flex items-center justify-between gap-2 text-xs text-neutral-500">
+                    <span>{m.role === "user" ? "나" : "동반자"}</span>
+                    <span>
+                      {m.created_at ? dateFmt.format(new Date(m.created_at)) : ""}
+                    </span>
+                  </div>
+                  <p className="whitespace-pre-wrap text-sm">{m.content}</p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-neutral-500">
+              아직 대화 기록이 없어요.{" "}
+              <Link href="/chat" className="text-indigo-600 hover:underline">
+                첫 대화를 시작해보세요.
+              </Link>
+            </p>
+          )}
+        </section>
+      </div>
+    </AppShell>
   );
 }

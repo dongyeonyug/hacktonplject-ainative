@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
-import { AppNav } from "@/components/AppNav";
+import { AppShell } from "@/components/AppShell";
 import { hasActiveConsent } from "@/lib/consent";
 import { isDifficultyCategory, isValidIntensity } from "@/lib/extract/taxonomy";
 import {
@@ -177,62 +177,63 @@ export default async function RecommendationsPage({
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-2xl flex-col gap-8 px-6 py-16">
-      <header className="space-y-3">
-        <AppNav current="recommendations" />
-        <h1 className="text-2xl font-bold">추천 정보</h1>
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          지금까지 나눈 대화에서 나타난 어려움을 바탕으로 도움이 될 만한 공개
-          기관·정책 정보를 보여드려요. 아래 정보는 모두 공개된 안내이며, 실제
-          기관 제휴나 실명 정보 이관은 이루어지지 않습니다.
-        </p>
-      </header>
-
-      {error && (
-        <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
-          {error}
-        </p>
-      )}
-      {saved && (
-        <p className="rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-          저장했어요. 언제든 다시 확인할 수 있어요.
-        </p>
-      )}
-
-      <InstitutionConnectionGate canConnect={canConnect} />
-
-      <div className="space-y-4">
-        {results.length === 0 && (
+    <AppShell current="recommendations">
+      <div className="mx-auto flex max-w-2xl flex-col gap-8 px-6 py-10 sm:py-16">
+        <header className="space-y-3">
+          <h1 className="text-2xl font-bold">추천 정보</h1>
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
-            아직 표시할 추천 정보가 없어요. 대화를 이어가면 더 정확한 추천을
-            받을 수 있어요.
+            지금까지 나눈 대화에서 나타난 어려움을 바탕으로 도움이 될 만한 공개
+            기관·정책 정보를 보여드려요. 아래 정보는 모두 공개된 안내이며, 실제
+            기관 제휴나 실명 정보 이관은 이루어지지 않습니다.
+          </p>
+        </header>
+
+        {error && (
+          <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
+            {error}
           </p>
         )}
-        {results.map(({ institution, rationale }) => (
-          <div
-            key={institution.id}
-            className="space-y-3 rounded-xl border border-neutral-200 p-5 dark:border-neutral-800"
-          >
-            <div className="flex items-center justify-between gap-4">
-              <h2 className="font-semibold">{institution.name}</h2>
-              <span className="shrink-0 rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
-                {institution.type === "hotline" ? "긴급 상담" : "공공 정보"}
-              </span>
+        {saved && (
+          <p className="rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+            저장했어요. 언제든 다시 확인할 수 있어요.
+          </p>
+        )}
+
+        <InstitutionConnectionGate canConnect={canConnect} />
+
+        <div className="space-y-4">
+          {results.length === 0 && (
+            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+              아직 표시할 추천 정보가 없어요. 대화를 이어가면 더 정확한 추천을
+              받을 수 있어요.
+            </p>
+          )}
+          {results.map(({ institution, rationale }) => (
+            <div
+              key={institution.id}
+              className="space-y-3 rounded-xl border border-neutral-200 p-5 dark:border-neutral-800"
+            >
+              <div className="flex items-center justify-between gap-4">
+                <h2 className="font-semibold">{institution.name}</h2>
+                <span className="shrink-0 rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
+                  {institution.type === "hotline" ? "긴급 상담" : "공공 정보"}
+                </span>
+              </div>
+              <InstitutionInfo info={institution.public_info} />
+              <p className="text-xs text-neutral-400">{rationale}</p>
+              <form action={saveRecommendationAction}>
+                <input type="hidden" name="institution_id" value={institution.id} />
+                <button
+                  type="submit"
+                  className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500"
+                >
+                  저장하기
+                </button>
+              </form>
             </div>
-            <InstitutionInfo info={institution.public_info} />
-            <p className="text-xs text-neutral-400">{rationale}</p>
-            <form action={saveRecommendationAction}>
-              <input type="hidden" name="institution_id" value={institution.id} />
-              <button
-                type="submit"
-                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500"
-              >
-                저장하기
-              </button>
-            </form>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-    </main>
+    </AppShell>
   );
 }
