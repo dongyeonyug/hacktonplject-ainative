@@ -1,0 +1,14 @@
+{
+  "active": false,
+  "current_phase": "complete",
+  "completed_at": "2026-07-04T05:32:00Z",
+  "stage_history": "team-plan,team-exec,team-verify,team-fix,complete",
+  "result": "MVP built + critical AC-13 egress gap fixed + /journal added; tsc/tests/build green; not committed",
+  "resume_doc": ".omc/state/TEAM_RESUME.md",
+  "_meta": {
+    "mode": "team",
+    "sessionId": null,
+    "updatedAt": "2026-07-04T06:31:19.226Z",
+    "updatedBy": "state_write_tool"
+  }
+}

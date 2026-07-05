@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"ls /Users/yugdong-yeon/workspace/vibecoding2/*.md 2>&1\"}",
+  "error": "Exit code 1\n(eval):1: no matches found: /Users/yugdong-yeon/workspace/vibecoding2/*.md",
+  "timestamp": "2026-07-04T05:15:51.622Z",
+  "retry_count": 1
+}
