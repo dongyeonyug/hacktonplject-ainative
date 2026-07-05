@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { AppNav } from "@/components/AppNav";
 
 export const dynamic = "force-dynamic";
 
@@ -40,14 +41,9 @@ export default async function JournalPage() {
 
   return (
     <main className="mx-auto min-h-dvh w-full max-w-2xl px-4 py-8">
-      <div className="mb-6 flex items-center justify-between gap-4">
+      <div className="mb-6 space-y-3">
+        <AppNav current="journal" />
         <h1 className="text-xl font-semibold">내 기록</h1>
-        <Link
-          href="/chat"
-          className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-500"
-        >
-          대화하러 가기
-        </Link>
       </div>
 
       <section className="mb-8">
