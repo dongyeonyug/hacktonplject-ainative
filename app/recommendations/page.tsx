@@ -16,6 +16,8 @@ import {
   type DifficultySignal,
 } from "@/lib/match/curate";
 import { SparkleBadgeIcon } from "@/components/icons";
+import { WideBanner } from "@/components/banners/WideBanner";
+import { PROMO_BANNERS } from "@/lib/dummy/promoBanners";
 import {
   grantInstitutionSharingConsentAction,
   saveRecommendationAction,
@@ -107,6 +109,49 @@ function InstitutionInfo({ info }: { info: Record<string, unknown> }) {
   );
 }
 
+function InstitutionCard({
+  institution,
+  rationale,
+}: {
+  institution: CuratedInstitution;
+  rationale: string;
+}) {
+  return (
+    <div className="space-y-3 rounded-xl border border-neutral-200 p-5 dark:border-neutral-800">
+      <div className="flex items-center justify-between gap-4">
+        <h2 className="font-semibold">{institution.name}</h2>
+        <span className="shrink-0 rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
+          {institution.type === "hotline" ? "상시 운영" : "모집 중"}
+        </span>
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        <span className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-300">
+          {institution.type === "hotline" ? "긴급 상담" : "공공 정보"}
+        </span>
+        {institution.categories.slice(0, 3).map((c) => (
+          <span
+            key={c}
+            className="rounded-full bg-neutral-100 px-2.5 py-0.5 text-xs text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400"
+          >
+            {CATEGORY_LABELS[c]}
+          </span>
+        ))}
+      </div>
+      <InstitutionInfo info={institution.public_info} />
+      <p className="text-xs text-neutral-400">{rationale}</p>
+      <form action={saveRecommendationAction}>
+        <input type="hidden" name="institution_id" value={institution.id} />
+        <button
+          type="submit"
+          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500"
+        >
+          저장하기
+        </button>
+      </form>
+    </div>
+  );
+}
+
 /**
  * AC-11 / AD-4 gate: connecting to an institution requires an active
  * `institution_sharing` consent. MVP-only — granting here flips the consent
@@ -185,6 +230,11 @@ export default async function RecommendationsPage({
   const results = curateInstitutions(signals, institutions, { limit });
   const hasMore = results.length >= limit && limit < EXPANDED_RESULT_LIMIT;
 
+  const FIRST_SECTION_SIZE = 2;
+  const firstSection = results.slice(0, FIRST_SECTION_SIZE);
+  const secondSection = results.slice(FIRST_SECTION_SIZE);
+  const promo = PROMO_BANNERS[0];
+
   // AC-10: log a "viewed" event for every institution actually shown this
   // load. Best-effort — a logging failure must never block the page render.
   if (results.length > 0) {
@@ -249,51 +299,36 @@ export default async function RecommendationsPage({
 
         <InstitutionConnectionGate canConnect={canConnect} />
 
+        {results.length === 0 && (
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            아직 표시할 추천 정보가 없어요. 대화를 이어가면 더 정확한 추천을
+            받을 수 있어요.
+          </p>
+        )}
+
         <div className="space-y-4">
-          {results.length === 0 && (
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
-              아직 표시할 추천 정보가 없어요. 대화를 이어가면 더 정확한 추천을
-              받을 수 있어요.
-            </p>
-          )}
-          {results.map(({ institution, rationale }) => (
-            <div
+          {firstSection.map(({ institution, rationale }) => (
+            <InstitutionCard
               key={institution.id}
-              className="space-y-3 rounded-xl border border-neutral-200 p-5 dark:border-neutral-800"
-            >
-              <div className="flex items-center justify-between gap-4">
-                <h2 className="font-semibold">{institution.name}</h2>
-                <span className="shrink-0 rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
-                  {institution.type === "hotline" ? "상시 운영" : "모집 중"}
-                </span>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                <span className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-300">
-                  {institution.type === "hotline" ? "긴급 상담" : "공공 정보"}
-                </span>
-                {institution.categories.slice(0, 3).map((c) => (
-                  <span
-                    key={c}
-                    className="rounded-full bg-neutral-100 px-2.5 py-0.5 text-xs text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400"
-                  >
-                    {CATEGORY_LABELS[c]}
-                  </span>
-                ))}
-              </div>
-              <InstitutionInfo info={institution.public_info} />
-              <p className="text-xs text-neutral-400">{rationale}</p>
-              <form action={saveRecommendationAction}>
-                <input type="hidden" name="institution_id" value={institution.id} />
-                <button
-                  type="submit"
-                  className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500"
-                >
-                  저장하기
-                </button>
-              </form>
-            </div>
+              institution={institution}
+              rationale={rationale}
+            />
           ))}
         </div>
+
+        {secondSection.length > 0 && <WideBanner data={promo} />}
+
+        {secondSection.length > 0 && (
+          <div className="space-y-4">
+            {secondSection.map(({ institution, rationale }) => (
+              <InstitutionCard
+                key={institution.id}
+                institution={institution}
+                rationale={rationale}
+              />
+            ))}
+          </div>
+        )}
 
         {hasMore && (
           <Link

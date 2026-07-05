@@ -28,7 +28,7 @@ const TABS: { key: TabKey; label: string }[] = [
 ];
 
 const RECORD_ITEMS: { label: string; href?: string }[] = [
-  { label: "AI 대화 요약", href: "/journal" },
+  { label: "내 대화 기록", href: "/chat-history" },
   { label: "감정 변화 기록" },
   { label: "캘린더 활동 기록", href: "/calendar" },
   { label: "자가진단 결과", href: "/self-check" },

@@ -1,4 +1,5 @@
 import type { ComponentType } from "react";
+import Link from "next/link";
 
 import type { IconProps } from "@/components/icons";
 import { SparkleBadgeIcon } from "@/components/icons";
@@ -39,6 +40,7 @@ export interface BannerCardProps {
   statusLabel?: string;
   statusVariant?: "pending" | "done";
   primaryLabel: string;
+  primaryHref?: string;
   onPrimaryClick?: () => void;
   secondaryLabel?: string;
   onSecondaryClick?: () => void;
@@ -61,6 +63,7 @@ export function BannerCard({
   statusLabel,
   statusVariant = "pending",
   primaryLabel,
+  primaryHref,
   onPrimaryClick,
   secondaryLabel,
   onSecondaryClick,
@@ -102,13 +105,22 @@ export function BannerCard({
         </p>
 
         <div className="flex flex-wrap items-center gap-2 pt-1">
-          <button
-            type="button"
-            onClick={onPrimaryClick}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500"
-          >
-            {primaryLabel}
-          </button>
+          {primaryHref ? (
+            <Link
+              href={primaryHref}
+              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500"
+            >
+              {primaryLabel}
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={onPrimaryClick}
+              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500"
+            >
+              {primaryLabel}
+            </button>
+          )}
           {secondaryLabel && (
             <button
               type="button"
