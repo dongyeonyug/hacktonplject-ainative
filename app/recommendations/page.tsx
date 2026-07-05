@@ -4,19 +4,38 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/AppShell";
 import { hasActiveConsent } from "@/lib/consent";
-import { isDifficultyCategory, isValidIntensity } from "@/lib/extract/taxonomy";
+import { getProfile } from "@/lib/profile";
+import {
+  isDifficultyCategory,
+  isValidIntensity,
+  type DifficultyCategory,
+} from "@/lib/extract/taxonomy";
 import {
   curateInstitutions,
   type CuratedInstitution,
   type DifficultySignal,
 } from "@/lib/match/curate";
+import { SparkleBadgeIcon } from "@/components/icons";
 import {
   grantInstitutionSharingConsentAction,
   saveRecommendationAction,
 } from "./actions";
 
-/** Cap the number of curated cards rendered per load. */
-const RESULT_LIMIT = 6;
+/** Cards shown per page load; "더 많은 정보 보기" bumps this via ?limit=. */
+const DEFAULT_RESULT_LIMIT = 6;
+const EXPANDED_RESULT_LIMIT = 12;
+
+const CATEGORY_LABELS: Record<DifficultyCategory, string> = {
+  career_anxiety: "취업 불안",
+  financial_stress: "재정 스트레스",
+  social_isolation: "사회적 고립",
+  self_worth: "자기 가치감",
+  sleep_health: "수면 건강",
+  family_pressure: "가족 압박",
+  burnout: "번아웃",
+  uncertainty_future: "미래 불확실성",
+  other: "기타",
+};
 
 interface InstitutionRow {
   id: string;
@@ -77,9 +96,9 @@ function InstitutionInfo({ info }: { info: Record<string, unknown> }) {
             href={url}
             target="_blank"
             rel="noreferrer"
-            className="font-medium text-indigo-600 dark:text-indigo-400"
+            className="rounded-lg border border-indigo-200 px-3 py-1 font-medium text-indigo-600 transition hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-950"
           >
-            {url}
+            자세히 보기
           </a>
         )}
         {hours && <span className="text-neutral-400">{hours}</span>}
@@ -131,9 +150,11 @@ function InstitutionConnectionGate({ canConnect }: { canConnect: boolean }) {
 export default async function RecommendationsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; saved?: string }>;
+  searchParams: Promise<{ error?: string; saved?: string; limit?: string }>;
 }) {
-  const { error, saved } = await searchParams;
+  const { error, saved, limit: limitParam } = await searchParams;
+  const expanded = limitParam === "more";
+  const limit = expanded ? EXPANDED_RESULT_LIMIT : DEFAULT_RESULT_LIMIT;
 
   const supabase = await createClient();
   const {
@@ -145,10 +166,12 @@ export default async function RecommendationsPage({
     { data: difficultyRows, error: difficultyError },
     { data: institutionRows, error: institutionError },
     canConnect,
+    profile,
   ] = await Promise.all([
     supabase.from("difficulty_data").select("category, intensity").eq("user_id", user.id),
     supabase.from("institutions").select("id, type, name, public_info, categories"),
     hasActiveConsent("institution_sharing"),
+    getProfile(),
   ]);
 
   if (difficultyError) throw difficultyError;
@@ -159,7 +182,8 @@ export default async function RecommendationsPage({
     .filter((s): s is DifficultySignal => s !== null);
   const institutions = (institutionRows ?? []).map(toCuratedInstitution);
 
-  const results = curateInstitutions(signals, institutions, { limit: RESULT_LIMIT });
+  const results = curateInstitutions(signals, institutions, { limit });
+  const hasMore = results.length >= limit && limit < EXPANDED_RESULT_LIMIT;
 
   // AC-10: log a "viewed" event for every institution actually shown this
   // load. Best-effort — a logging failure must never block the page render.
@@ -180,13 +204,37 @@ export default async function RecommendationsPage({
     <AppShell current="recommendations">
       <div className="mx-auto flex max-w-2xl flex-col gap-8 px-6 py-10 sm:py-16">
         <header className="space-y-3">
-          <h1 className="text-2xl font-bold">추천 정보</h1>
+          <h1 className="text-2xl font-bold">
+            {profile?.pseudonym ?? "회원"}님을 위한 맞춤 정보
+          </h1>
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
-            지금까지 나눈 대화에서 나타난 어려움을 바탕으로 도움이 될 만한 공개
-            기관·정책 정보를 보여드려요. 아래 정보는 모두 공개된 안내이며, 실제
-            기관 제휴나 실명 정보 이관은 이루어지지 않습니다.
+            지금까지 나눈 대화에서 나타난 어려움을 바탕으로 도움이 될 만한 취업지원
+            프로그램·멘탈케어 정보·청년 지원 정책을 보여드려요. 아래 정보는 모두
+            공개된 안내이며, 실제 기관 제휴나 실명 정보 이관은 이루어지지 않습니다.
           </p>
         </header>
+
+        <div className="relative overflow-hidden rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50 to-white p-6 dark:border-indigo-900/50 dark:from-indigo-950/30 dark:to-neutral-950">
+          <div className="absolute -right-6 -top-6 h-28 w-28 rounded-full bg-indigo-200/40 dark:bg-indigo-900/30" />
+          <div className="relative flex items-center gap-4">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-300">
+              <SparkleBadgeIcon className="h-6 w-6" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold">마음곁과 함께, 취업 준비도 마음 관리도</p>
+              <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">
+                나에게 맞는 지원 정책을 찾는 것도 중요하지만, 나 자신을 아는 것도
+                중요해요. 자가진단으로 지금 나의 상태를 확인해보세요.
+              </p>
+            </div>
+            <Link
+              href="/self-check"
+              className="hidden shrink-0 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500 sm:block"
+            >
+              자가진단 하러가기
+            </Link>
+          </div>
+        </div>
 
         {error && (
           <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
@@ -216,8 +264,21 @@ export default async function RecommendationsPage({
               <div className="flex items-center justify-between gap-4">
                 <h2 className="font-semibold">{institution.name}</h2>
                 <span className="shrink-0 rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
+                  {institution.type === "hotline" ? "상시 운영" : "모집 중"}
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                <span className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-300">
                   {institution.type === "hotline" ? "긴급 상담" : "공공 정보"}
                 </span>
+                {institution.categories.slice(0, 3).map((c) => (
+                  <span
+                    key={c}
+                    className="rounded-full bg-neutral-100 px-2.5 py-0.5 text-xs text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400"
+                  >
+                    {CATEGORY_LABELS[c]}
+                  </span>
+                ))}
               </div>
               <InstitutionInfo info={institution.public_info} />
               <p className="text-xs text-neutral-400">{rationale}</p>
@@ -233,6 +294,15 @@ export default async function RecommendationsPage({
             </div>
           ))}
         </div>
+
+        {hasMore && (
+          <Link
+            href="?limit=more"
+            className="rounded-lg border border-neutral-200 px-4 py-2.5 text-center text-sm font-medium text-neutral-600 transition hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-900"
+          >
+            더 많은 정보 보기
+          </Link>
+        )}
       </div>
     </AppShell>
   );

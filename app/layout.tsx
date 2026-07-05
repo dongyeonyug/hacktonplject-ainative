@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import ServiceWorkerRegister from "./service-worker-register";
+import { THEME_INIT_SCRIPT } from "@/lib/theme";
 
 export const metadata: Metadata = {
   title: "마음곁 · 취준생 멘탈케어 동반자",
@@ -27,8 +28,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
-      <body className="antialiased min-h-dvh">
+    <html lang="ko" suppressHydrationWarning>
+      <head>
+        {/* Runs before hydration so the right theme class is set pre-paint. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
+      <body className="antialiased min-h-dvh" suppressHydrationWarning>
         {children}
         <ServiceWorkerRegister />
       </body>
