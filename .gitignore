@@ -35,6 +35,13 @@ yarn-error.log*
 /supabase/.branches
 /supabase/.temp
 
+# omc runtime state (keep .omc/plans, specs, drafts, handoffs as reference docs)
+.omc/state/
+.omc/sessions/
+.omc/project-memory.json
+.omc/logs/
+.omc/artifacts/
+
 # test artifacts
 /coverage
 /playwright-report
