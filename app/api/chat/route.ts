@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import type Anthropic from "@anthropic-ai/sdk";
 
 import { createClient } from "@/lib/supabase/server";
@@ -13,6 +14,7 @@ import {
   type CrisisDecision,
 } from "@/lib/safety/crisis";
 import { HOTLINES, CRISIS_HONESTY_NOTICE } from "@/lib/safety/hotlines";
+import { runExtraction } from "@/lib/extract/run-extraction";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -151,6 +153,23 @@ export async function POST(request: Request): Promise<Response> {
         .select("id")
         .single();
       userMessageId = data?.id ?? null;
+
+      // AD-1: background difficulty extraction. Scheduled with next/server
+      // `after()` so it runs AFTER the response finishes — reliably on both a
+      // long-lived Node server AND Vercel's serverless runtime (which freezes
+      // the function once the response is sent, so a bare fire-and-forget
+      // floating promise would be dropped). Never blocks the chat stream
+      // (Principle 1); failures are swallowed inside runExtraction.
+      if (userMessageId) {
+        const extractMessageId = userMessageId;
+        after(() =>
+          runExtraction({
+            messageId: extractMessageId,
+            content: userMessage,
+            userId: user.id,
+          }),
+        );
+      }
     }
   }
 

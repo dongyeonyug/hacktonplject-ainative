@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { AppNav } from "@/components/AppNav";
 import { hasActiveConsent } from "@/lib/consent";
 import { isDifficultyCategory, isValidIntensity } from "@/lib/extract/taxonomy";
 import {
@@ -177,16 +178,9 @@ export default async function RecommendationsPage({
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-2xl flex-col gap-8 px-6 py-16">
-      <header className="space-y-2">
-        <div className="flex items-center justify-between gap-4">
-          <h1 className="text-2xl font-bold">추천 정보</h1>
-          <Link
-            href="/chat"
-            className="text-sm text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-100"
-          >
-            대화로 돌아가기
-          </Link>
-        </div>
+      <header className="space-y-3">
+        <AppNav current="recommendations" />
+        <h1 className="text-2xl font-bold">추천 정보</h1>
         <p className="text-sm text-neutral-500 dark:text-neutral-400">
           지금까지 나눈 대화에서 나타난 어려움을 바탕으로 도움이 될 만한 공개
           기관·정책 정보를 보여드려요. 아래 정보는 모두 공개된 안내이며, 실제

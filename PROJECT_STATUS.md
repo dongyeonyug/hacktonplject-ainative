@@ -95,9 +95,12 @@
 - **회원가입 후 로그인이 막힘** → 원인: Supabase "이메일 인증(Confirm email)"이 켜져 있음.
   → **해결: 이메일 인증 끄기** (아래 6단계 = 5. 사용법 참고). 끄면 가입 즉시 로그인됩니다.
 
+### 🆕 방금 완성된 것
+- **백그라운드 어려움 추출** — Next.js 서버 안에서 직접 실행되도록 구현 완료(Edge Function 배포 불필요). 대화하면 자동으로 `difficulty_data`가 쌓이고, `/recommendations`가 그 데이터로 개인화됨. **라이브 검증 완료**(Claude+Supabase 실제 동작 확인).
+
 ### ⏳ 아직 안 켠 것 (선택)
-- **백그라운드 어려움 추출** — Edge Function 배포가 필요(대화·추천 등 나머지는 이거 없이도 작동)
 - **라이브 통합 테스트**(pgTAP DB 테스트, Playwright E2E) — 실제 환경에서 실행 필요
+- (참고) 서버리스 배포 시엔 Edge Function 경로(`supabase/functions/extract-difficulty`)를 배포하면 더 견고. 지금 로컬/일반 서버(`npm run dev`/`start`)에선 앱 내 추출로 충분히 작동.
 
 ---
 
